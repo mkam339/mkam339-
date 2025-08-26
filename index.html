@@ -112,15 +112,7 @@
       if (ok) return null;
       return (
         <div className="notice mx-auto max-w-5xl my-4 rounded-xl px-4 py-3 text-sm">
-          <div className="font-bold mb-1">مطلوب تفعيل Supabase</div>
-          <ol className="list-decimal ps-5 space-y-1">
-            <li>من لوحة Supabase → <b>Project Settings → API</b>، انسخ <b>anon public key</b>.</li>
-            <li>افتح هذا الملف وابحث عن <code>eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3dmpvbWZrYW1hcnNlcHRmeGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyMDQxODcsImV4cCI6MjA3MTc4MDE4N30.1YQm212pZMbbb3vdq5UTFUhJ-oygwswpZn-rTQCDPic</code> واستبدله بالمفتاح.</li>
-            <li>احفظ الملف وأعد تحميل الصفحة من دومين (ليس file://). أثناء التطوير استخدم <code>npx serve</code> أو Live Server.</li>
-          </ol>
-        </div>
-      );
-    }
+         
 
     // ========= المصادقة =============
     function useAuth() {
