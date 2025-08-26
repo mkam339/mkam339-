@@ -1,0 +1,328 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>mkam339 — حجز داخلي + تحويل بنكي</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    html { scroll-behavior:smooth }
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans Arabic", "Noto Sans", Arial, sans-serif }
+    .notice { background: #fff7ed; color:#7c2d12; border:1px solid #fed7aa }
+  </style>
+</head>
+<body class="bg-white text-black">
+  <div id="app"></div>
+
+  <!-- React + ReactDOM + Babel + Supabase -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script type="text/babel">
+    const { useState, useEffect, useMemo } = React;
+
+    // === عدّل القيم هنا فقط ===
+    const CONFIG = {
+      supabase: {
+        url: "https://lwvjomfkamarseptfxey.supabase.co", // <-- URL مشروعك تم ضبطه لك
+        anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3dmpvbWZrYW1hcnNlcHRmeGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyMDQxODcsImV4cCI6MjA3MTc4MDE4N30.1YQm212pZMbbb3vdq5UTFUhJ-oygwswpZn-rTQCDPic"              // <-- الصق هنا anon public key من Project Settings → API
+      },
+      brand: { name: "mkam339", tagline: "مصمم مواقع — حجز داخلي + دفع تحويل بنكي" },
+      company: { name: "شركة السهل واللين", url: "https://example.com", about: "شركة تعمل في اللوحات الإرشادية وتضم قسمًا للمبرمجين، وأنا عضو في هذا القسم." },
+      colors: { blue: "#2563eb", green: "#16a34a", black: "#0a0a0a" },
+    };
+    // ==========================
+
+    function useSupabase() {
+      return useMemo(() => {
+        const { url, anonKey } = CONFIG.supabase || {};
+        if (!url || !anonKey || anonKey === "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3dmpvbWZrYW1hcnNlcHRmeGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyMDQxODcsImV4cCI6MjA3MTc4MDE4N30.1YQm212pZMbbb3vdq5UTFUhJ-oygwswpZn-rTQCDPic") return null;
+        return window.supabase.createClient(url, anonKey, {
+          auth: {
+            persistSession: false,
+            autoRefreshToken: true,
+            storage: { getItem: async () => null, setItem: async () => {}, removeItem: async () => {} },
+          },
+        });
+      }, []);
+    }
+
+    const Section = ({ id, title, subtitle, children }) => (
+      <section id={id} className="py-16">
+        <div className="mx-auto max-w-5xl px-4">
+          <div className="mb-6">
+            <h2 className="text-2xl md:text-3xl font-extrabold text-black">{title}</h2>
+            {subtitle && <p className="mt-2 text-neutral-600">{subtitle}</p>}
+          </div>
+          {children}
+        </div>
+      </section>
+    );
+
+    const NavBar = ({ onLoginClick, isAdmin }) => (
+      <header className="sticky top-0 z-50 border-b border-neutral-200 bg-white/90 backdrop-blur">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
+          <a href="#" className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-xl border border-black/20 flex items-center justify-center font-black">mk</div>
+            <div className="leading-tight">
+              <div className="font-extrabold text-black uppercase tracking-widest">mkam339</div>
+              <div className="text-xs text-neutral-500">حجز + دفع تحويل بنكي</div>
+            </div>
+          </a>
+          <nav className="hidden md:flex items-center gap-5 text-sm font-medium">
+            <a href="#portfolio" className="hover:text-black/70">معرض الأعمال</a>
+            <a href="#services" className="hover:text-black/70">الخدمات</a>
+            <a href="#process" className="hover:text-black/70">الخطوات</a>
+            <a href="#booking" className="hover:text-black/70">الحجز</a>
+            <a href="#faq" className="hover:text-black/70">الأسئلة</a>
+            {isAdmin && <a href="#admin" className="hover:text-black/70">لوحة التحكم</a>}
+          </nav>
+          <button onClick={onLoginClick} className="rounded-xl border border-neutral-300 px-4 py-2 text-sm font-semibold hover:bg-neutral-50">تسجيل الدخول</button>
+        </div>
+      </header>
+    );
+
+    const Hero = () => (
+      <div className="border-b border-neutral-200 bg-white">
+        <div className="mx-auto max-w-5xl px-4 py-14">
+          <h1 className="text-3xl md:text-5xl font-black text-black leading-tight">
+            مواقع احترافية مع حجز ومتابعة مدفوعات وتحويل بنكي
+          </h1>
+          <p className="mt-3 text-neutral-700 md:text-lg">
+            كل البيانات محفوظة في Supabase مع سياسات أمان RLS. لوحة مشرف لإدارة الحجوزات والمدفوعات وإعدادات البنك.
+          </p>
+          <div className="mt-6 flex gap-3">
+            <a href="#booking" className="rounded-xl px-5 py-3 text-sm font-extrabold text-white"
+               style={{ background: `linear-gradient(90deg, #2563eb, #16a34a)` }}>ابدأ الحجز</a>
+            <a href="#portfolio" className="rounded-xl border border-neutral-300 px-5 py-3 text-sm font-bold hover:bg-neutral-50">معرض الأعمال</a>
+          </div>
+        </div>
+      </div>
+    );
+
+    function NoticeIfNoConfig() {
+      const ok = !!CONFIG.supabase.url && !!CONFIG.supabase.anonKey && CONFIG.supabase.anonKey !== "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3dmpvbWZrYW1hcnNlcHRmeGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyMDQxODcsImV4cCI6MjA3MTc4MDE4N30.1YQm212pZMbbb3vdq5UTFUhJ-oygwswpZn-rTQCDPic";
+      if (ok) return null;
+      return (
+        <div className="notice mx-auto max-w-5xl my-4 rounded-xl px-4 py-3 text-sm">
+          <div className="font-bold mb-1">مطلوب تفعيل Supabase</div>
+          <ol className="list-decimal ps-5 space-y-1">
+            <li>من لوحة Supabase → <b>Project Settings → API</b>، انسخ <b>anon public key</b>.</li>
+            <li>افتح هذا الملف وابحث عن <code>eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3dmpvbWZrYW1hcnNlcHRmeGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyMDQxODcsImV4cCI6MjA3MTc4MDE4N30.1YQm212pZMbbb3vdq5UTFUhJ-oygwswpZn-rTQCDPic</code> واستبدله بالمفتاح.</li>
+            <li>احفظ الملف وأعد تحميل الصفحة من دومين (ليس file://). أثناء التطوير استخدم <code>npx serve</code> أو Live Server.</li>
+          </ol>
+        </div>
+      );
+    }
+
+    // ========= المصادقة =============
+    function useAuth() {
+      const supabase = useSupabase();
+      const [user, setUser] = useState(null);
+
+      useEffect(() => {
+        if (!supabase) return;
+        supabase.auth.getUser().then(({ data }) => setUser(data?.user || null));
+        const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => setUser(session?.user || null));
+        return () => sub?.subscription?.unsubscribe();
+      }, [supabase]);
+
+      return { supabase, user };
+    }
+
+    function AuthModal({ open, onClose, onAuthChange }) {
+      const { supabase } = useAuth(); // للحصول على client جاهز
+      const [mode, setMode] = useState('signup');
+      const [email, setEmail] = useState('');
+      const [password, setPassword] = useState('');
+      const [adminCode, setAdminCode] = useState('');
+      const [loading, setLoading] = useState(false);
+      const [error, setError] = useState('');
+
+      async function handleAuth(e) {
+        e.preventDefault();
+        setError('');
+        if (!supabase) { setError('فعّل Supabase في CONFIG'); return; }
+        setLoading(true);
+        try {
+          if (mode === 'login') {
+            const { error } = await supabase.auth.signInWithPassword({ email, password });
+            if (error) throw error;
+          } else {
+            const { data, error } = await supabase.auth.signUp({ email, password });
+            if (error) throw error;
+            if (data?.user) {
+              try { await supabase.rpc('init_profile'); } catch {}
+              if (adminCode.trim()) { try { await supabase.rpc('elevate_to_admin', { p_code: adminCode.trim() }); } catch {} }
+            }
+          }
+          onAuthChange && onAuthChange(true);
+          onClose();
+        } catch (err) {
+          setError(err?.message || 'حدث خطأ');
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      async function loginWithGoogle() {
+        const urlOk = !!CONFIG.supabase.url;
+        const keyOk = !!CONFIG.supabase.anonKey && CONFIG.supabase.anonKey !== "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3dmpvbWZrYW1hcnNlcHRmeGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyMDQxODcsImV4cCI6MjA3MTc4MDE4N30.1YQm212pZMbbb3vdq5UTFUhJ-oygwswpZn-rTQCDPic";
+        if (!urlOk || !keyOk) { setError('أكمل CONFIG أولاً'); return; }
+        const supabase = window.supabase.createClient(CONFIG.supabase.url, CONFIG.supabase.anonKey, {
+          auth: { persistSession:false, autoRefreshToken:true, storage: { getItem:async()=>null, setItem:async()=>{}, removeItem:async()=>{} } }
+        });
+        await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: { redirectTo: window.location.origin }
+        });
+      }
+
+      if (!open) return null;
+      return (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4" onClick={onClose}>
+          <div className="w-full max-w-md rounded-2xl border border-neutral-200 bg-white p-6 shadow-xl" onClick={(e)=>e.stopPropagation()}>
+            <div className="mb-4 flex items-center justify-between">
+              <div className="text-lg font-extrabold text-black">تسجيل الدخول / إنشاء حساب</div>
+              <button onClick={onClose} className="rounded-xl border px-3 py-1 text-xs">إغلاق</button>
+            </div>
+
+            <form onSubmit={handleAuth} className="space-y-3" autoComplete="off">
+              <div className="flex gap-2 text-xs">
+                <button type="button" className={"rounded-xl border px-3 py-1 " + (mode==='login'?'bg-neutral-50':'')} onClick={()=>setMode('login')}>تسجيل الدخول</button>
+                <button type="button" className={"rounded-xl border px-3 py-1 " + (mode==='signup'?'bg-neutral-50':'')} onClick={()=>setMode('signup')}>حساب جديد</button>
+              </div>
+
+              <input type="email" placeholder="البريد الإلكتروني" className="w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm" value={email} onChange={(e)=>setEmail(e.target.value)} required />
+              <input type="password" placeholder="كلمة المرور" className="w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm" value={password} onChange={(e)=>setPassword(e.target.value)} required />
+
+              <!-- خانة رمز المشرف ظاهرة دائمًا -->
+              <input type="password" inputMode="numeric" autocomplete="new-password" placeholder="رمز المشرف (اختياري)"
+                     className="w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm" value={adminCode} onChange={(e)=>setAdminCode(e.target.value)} />
+
+              {error && <div className="text-xs text-red-600">{error}</div>}
+              <button type="submit" disabled={loading} className="w-full rounded-xl px-4 py-2 text-sm font-extrabold text-white disabled:opacity-60" style={{ background: '#0a0a0a' }}>
+                {loading ? 'جارٍ المعالجة…' : (mode==='login' ? 'تسجيل الدخول' : 'إنشاء الحساب')}
+              </button>
+
+              <div className="flex items-center gap-2 py-1">
+                <div className="h-px w-full bg-neutral-200"></div><div className="text-[11px] text-neutral-500">أو</div><div className="h-px w-full bg-neutral-200"></div>
+              </div>
+
+              <button type="button" onClick={loginWithGoogle} className="w-full rounded-xl border px-4 py-2 text-sm font-semibold">متابعة باستخدام Google</button>
+            </form>
+          </div>
+        </div>
+      );
+    }
+
+    // ======= لوحة الإدارة مختصرة (عرض فقط) =======
+    function AdminDashboard({ supabase, profile }) {
+      const isAdmin = profile?.role === 'admin';
+      const [bank, setBank] = useState({ bankName: '', accountName: '', iban: '', note: '' });
+      const [msg, setMsg] = useState('');
+
+      useEffect(() => {
+        (async () => {
+          if (!supabase || !isAdmin) return;
+          const { data: s } = await supabase.from('settings').select('value').eq('key','bank').maybeSingle();
+          if (s && s.value) setBank(prev => ({ ...prev, ...s.value }));
+        })();
+      }, [supabase, isAdmin]);
+
+      async function saveBank() {
+        if (!supabase) return;
+        const { error } = await supabase.from('settings').upsert({ key:'bank', value: bank, updated_at: new Date().toISOString() });
+        setMsg(error ? 'تعذر الحفظ' : 'تم الحفظ ويظهر للجميع فورًا');
+      }
+
+      if (!isAdmin) return <div className="rounded-xl border p-4 text-sm">تحتاج صلاحية مشرف.</div>;
+
+      return (
+        <div className="space-y-3">
+          <input placeholder="اسم البنك" className="w-full rounded-xl border px-3 py-2 text-sm" value={bank.bankName} onChange={e=>setBank({...bank, bankName:e.target.value})} />
+          <input placeholder="اسم الحساب" className="w-full rounded-xl border px-3 py-2 text-sm" value={bank.accountName} onChange={e=>setBank({...bank, accountName:e.target.value})} />
+          <input placeholder="IBAN" className="w-full rounded-xl border px-3 py-2 text-sm" value={bank.iban} onChange={e=>setBank({...bank, iban:e.target.value})} />
+          <textarea placeholder="ملاحظة" className="w-full rounded-xl border px-3 py-2 text-sm" rows="3" value={bank.note} onChange={e=>setBank({...bank, note:e.target.value})} />
+          <button onClick={saveBank} className="rounded-xl px-4 py-2 text-sm font-extrabold text-white" style={{ background:'#0a0a0a' }}>حفظ</button>
+          {msg && <div className="text-xs text-neutral-600">{msg}</div>}
+        </div>
+      );
+    }
+
+    function App() {
+      const supabase = useSupabase();
+      const [authOpen, setAuthOpen] = useState(false);
+      const [user, setUser] = useState(null);
+      const [profile, setProfile] = useState(null);
+
+      useEffect(() => {
+        (async () => {
+          if (!supabase) return;
+          const { data } = await supabase.auth.getUser();
+          setUser(data?.user || null);
+        })();
+      }, [supabase]);
+
+      useEffect(() => {
+        (async () => {
+          if (!supabase || !user) { setProfile(null); return; }
+          const { data } = await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle();
+          setProfile(data || { role: 'client' });
+        })();
+      }, [supabase, user]);
+
+      const isAdmin = profile?.role === 'admin';
+
+      return (
+        <div className="min-h-screen">
+          <NavBar onLoginClick={() => setAuthOpen(true)} isAdmin={isAdmin} />
+          <Hero />
+          <NoticeIfNoConfig />
+
+          <Section id="services" title="الخدمات" subtitle="حلول مواقع احترافية بخيارات دفع وتحكم داخلي">
+            <ul className="list-disc ps-6 text-sm text-neutral-700">
+              <li>صفحات هبوط ومواقع شركات</li>
+              <li>حجوزات داخلية ودفع بتحويل بنكي</li>
+              <li>لوحة مشرف لإدارة الإعدادات</li>
+            </ul>
+          </Section>
+
+          <Section id="portfolio" title="معرض الأعمال" subtitle="أعمال مختارة يمكن استبدالها بروابط حقيقية">
+            <div className="grid gap-4 md:grid-cols-3">
+              {['مشروع 1','مشروع 2','مشروع 3'].map((t,i)=>(
+                <a key={i} href="#" className="rounded-xl border p-4 hover:bg-neutral-50">
+                  <div className="font-extrabold text-black mb-1">{t}</div>
+                  <div className="text-sm text-neutral-600">وصف مختصر للمشروع…</div>
+                </a>
+              ))}
+            </div>
+          </Section>
+
+          <Section id="booking" title="الحجز والدفع" subtitle="سيتم توليد مرجع دفع ويظهر لك IBAN بعد التسجيل">
+            <div className="rounded-xl border p-4 text-sm text-neutral-600">
+              لتجربة الحجز كاملة نحتاج إعداد الجداول وسياسات RLS (شغّل ملف SQL الذي وفّرته لك).
+            </div>
+          </Section>
+
+          <Section id="admin" title="لوحة التحكم" subtitle="تعديل بيانات البنك (للمشرف فقط)">
+            <AdminDashboard supabase={supabase} profile={profile} />
+          </Section>
+
+          <footer className="bg-black text-white mt-10">
+            <div className="mx-auto max-w-5xl px-4 py-8 text-xs opacity-80">© {new Date().getFullYear()} mkam339 — جميع الحقوق محفوظة.</div>
+          </footer>
+
+          <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} onAuthChange={()=>{ window.location.reload(); }} />
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('app'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
