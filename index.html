@@ -36,19 +36,23 @@
     };
     // ==========================
 
-    function useSupabase() {
-      return useMemo(() => {
-        const { url, anonKey } = CONFIG.supabase || {};
-        if (!url || !anonKey || anonKey === "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3dmpvbWZrYW1hcnNlcHRmeGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyMDQxODcsImV4cCI6MjA3MTc4MDE4N30.1YQm212pZMbbb3vdq5UTFUhJ-oygwswpZn-rTQCDPic") return null;
-        return window.supabase.createClient(url, anonKey, {
-          auth: {
-            persistSession: false,
-            autoRefreshToken: true,
-            storage: { getItem: async () => null, setItem: async () => {}, removeItem: async () => {} },
-          },
-        });
-      }, []);
-    }
+     const SUPABASE_URL  = "https://lwvjomfkamarseptfxey.supabase.co";
+  const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."; // المفتاح كامل
+
+  // أنشئ العميل مرّة واحدة
+  window.__sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: true,
+      storage: { getItem:async()=>null, setItem:async()=>{}, removeItem:async()=>{} },
+    },
+  });
+
+  // دالة مرجعية
+  function useSupabase() {
+    return window.__sb;
+  }
+
 
     const Section = ({ id, title, subtitle, children }) => (
       <section id={id} className="py-16">
