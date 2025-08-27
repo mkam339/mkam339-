@@ -2,321 +2,515 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+
+  <script>
+    // Guaranteed global helpers for opening/closing the auth modal
+    function openAuth() {
+      try {
+        var modal = document.getElementById('authModal');
+        if (modal) modal.classList.remove('hidden');
+      } catch (e) { console.error(e); }
+    }
+    function closeAuth() {
+      try {
+        var modal = document.getElementById('authModal');
+        if (modal) modal.classList.add('hidden');
+      } catch (e) { console.error(e); }
+    }
+  </script>
+
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>mkam339 — حجز داخلي + تحويل بنكي</title>
+  <title>mkam339 — بدون React/Babel</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    html { scroll-behavior:smooth }
-    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans Arabic", "Noto Sans", Arial, sans-serif }
-    .notice { background: #fff7ed; color:#7c2d12; border:1px solid #fed7aa }
-  </style>
+  <style>body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans Arabic","Noto Sans",Arial,sans-serif}</style>
 </head>
 <body class="bg-white text-black">
-  <div id="app"></div>
-
-  <!-- React + ReactDOM + Babel + Supabase -->
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <script type="text/babel">
-    const { useState, useEffect, useMemo } = React;
-
-    // === عدّل القيم هنا فقط ===
-    const CONFIG = {
-      supabase: {
-        url: "https://lwvjomfkamarseptfxey.supabase.co", // <-- URL مشروعك تم ضبطه لك
-        anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3dmpvbWZrYW1hcnNlcHRmeGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyMDQxODcsImV4cCI6MjA3MTc4MDE4N30.1YQm212pZMbbb3vdq5UTFUhJ-oygwswpZn-rTQCDPic"              // <-- الصق هنا anon public key من Project Settings → API
-      },
-      brand: { name: "mkam339", tagline: "مصمم مواقع — حجز داخلي + دفع تحويل بنكي" },
-      company: { name: "شركة السهل واللين", url: "https://example.com", about: "شركة تعمل في اللوحات الإرشادية وتضم قسمًا للمبرمجين، وأنا عضو في هذا القسم." },
-      colors: { blue: "#2563eb", green: "#16a34a", black: "#0a0a0a" },
-    };
-    // ==========================
-
-     const SUPABASE_URL  = "https://lwvjomfkamarseptfxey.supabase.co";
-  const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."; // المفتاح كامل
-
-  // أنشئ العميل مرّة واحدة
-  window.__sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: true,
-      storage: { getItem:async()=>null, setItem:async()=>{}, removeItem:async()=>{} },
-    },
-  });
-
-  // دالة مرجعية
-  function useSupabase() {
-    return window.__sb;
-  }
-
-
-    const Section = ({ id, title, subtitle, children }) => (
-      <section id={id} className="py-16">
-        <div className="mx-auto max-w-5xl px-4">
-          <div className="mb-6">
-            <h2 className="text-2xl md:text-3xl font-extrabold text-black">{title}</h2>
-            {subtitle && <p className="mt-2 text-neutral-600">{subtitle}</p>}
-          </div>
-          {children}
+  <header class="sticky top-0 z-50 border-b border-neutral-200 bg-white/90 backdrop-blur">
+    <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
+      <a href="#" class="flex items-center gap-3">
+        <div class="h-10 w-10 rounded-2xl border border-black/20 flex items-center justify-center font-black">mk</div>
+        <div class="leading-tight">
+          <div class="font-extrabold text-black uppercase tracking-widest">mkam339</div>
+          <div class="text-xs text-neutral-500">حجز + تحويل بنكي</div>
         </div>
-      </section>
-    );
+      </a>
+      <nav class="hidden md:flex items-center gap-6 text-sm font-medium">
+        <a href="#portfolio" class="hover:text-black/70">معرض الأعمال</a>
+        <a href="#services" class="hover:text-black/70">الخدمات</a>
+        <a href="#process" class="hover:text-black/70">الخطوات</a>
+        <a href="#booking" class="hover:text-black/70">الحجز</a>
+        <a href="#faq" class="hover:text-black/70">الأسئلة</a>
+        <a href="#admin" id="adminLink" class="hover:text-black/70 hidden">لوحة التحكم</a>
+      </nav><a href="#auth" onclick="openAuth()" class="md:hidden text-sm underline">الدخول</a>
+      <button id="btnOpenAuth" onclick="openAuth()" class="rounded-xl border border-neutral-300 px-4 py-2 text-sm font-semibold hover:bg-neutral-50">دخول / حساب جديد</button>
+    </div>
+  </header>
 
-    const NavBar = ({ onLoginClick, isAdmin }) => (
-      <header className="sticky top-0 z-50 border-b border-neutral-200 bg-white/90 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-          <a href="#" className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-xl border border-black/20 flex items-center justify-center font-black">mk</div>
-            <div className="leading-tight">
-              <div className="font-extrabold text-black uppercase tracking-widest">mkam339</div>
-              <div className="text-xs text-neutral-500">حجز + دفع تحويل بنكي</div>
+  <main class="min-h-screen">
+    <section class="border-b border-neutral-200 bg-white">
+      <div class="mx-auto max-w-7xl px-4 py-16">
+        <h1 class="text-4xl md:text-6xl font-black text-black leading-[1.1] mb-4">مواقع احترافية مع حجز ودفع تحويل بنكي ولوحة مشرف</h1>
+        <p class="text-neutral-700 md:text-xl max-w-2xl mb-6">كل البيانات محفوظة في Supabase مع سياسات RLS. يمكن للمشرف تعديل بيانات البنك وتأكيد المدفوعات.</p>
+        <div class="flex flex-wrap items-center gap-4">
+          <a href="#booking" class="rounded-2xl px-6 py-3 text-base font-extrabold text-white" style="background:linear-gradient(90deg,#2563eb,#16a34a)">احجز الآن</a>
+          <a href="#portfolio" class="rounded-2xl border border-neutral-300 px-6 py-3 text-base font-bold hover:bg-neutral-50">أعمالي</a>
+        </div>
+      </div>
+      <div class="bg-black text-white">
+        <div class="mx-auto max-w-7xl px-4 py-6 grid gap-4 md:grid-cols-3 text-sm">
+          <div>سرعة تنفيذ عالية</div><div>حفظ آمن للبيانات</div><div>دعم من شركة السهل واللين</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="services" class="py-16">
+      <div class="mx-auto max-w-7xl px-4">
+        <h2 class="text-3xl font-extrabold mb-2">الخدمات</h2>
+        <div class="grid gap-6 md:grid-cols-3">
+          <div class="rounded-2xl border p-6"><div class="font-extrabold mb-1">مواقع شركات</div><div class="text-sm text-neutral-600">صفحات هبوط ومواقع تعريفية محسّنة للتحويل.</div></div>
+          <div class="rounded-2xl border p-6"><div class="font-extrabold mb-1">متاجر خفيفة</div><div class="text-sm text-neutral-600">كتالوج + طلبات عبر التحويل البنكي.</div></div>
+          <div class="rounded-2xl border p-6"><div class="font-extrabold mb-1">لوحات إدارة</div><div class="text-sm text-neutral-600">لوحة مشرف لإدارة حجوزات ومدفوعات وإعدادات.</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="portfolio" class="py-16">
+      <div class="mx-auto max-w-7xl px-4">
+        <h2 class="text-3xl font-extrabold mb-2">معرض الأعمال</h2>
+        <div class="grid gap-6 md:grid-cols-3">
+          <a href="#" class="rounded-2xl border p-6 hover:bg-neutral-50"><div class="font-extrabold mb-1">مشروع 1</div><div class="text-sm text-neutral-600">وصف مختصر…</div></a>
+          <a href="#" class="rounded-2xl border p-6 hover:bg-neutral-50"><div class="font-extrabold mb-1">مشروع 2</div><div class="text-sm text-neutral-600">وصف مختصر…</div></a>
+          <a href="#" class="rounded-2xl border p-6 hover:bg-neutral-50"><div class="font-extrabold mb-1">مشروع 3</div><div class="text-sm text-neutral-600">وصف مختصر…</div></a>
+        </div>
+      </div>
+    </section>
+
+    <section id="booking" class="py-16">
+      <div class="mx-auto max-w-7xl px-4">
+        <h2 class="text-3xl font-extrabولد mb-2">الحجز والدفع</h2>
+        <div class="grid gap-6 md:grid-cols-2">
+          <div class="rounded-2xl border p-6">
+            <div class="text-lg font-extrabold mb-2">احجز موعد استشارة</div>
+            <p class="text-sm text-neutral-600 mb-3">املأ النموذج وسيتم حفظ الطلب. بعدها تظهر بيانات البنك ومرجع الدفع.</p>
+            <form id="formBooking" class="space-y-2">
+              <div class="grid gap-2 md:grid-cols-2">
+                <input id="bkDate" type="date" required class="w-full rounded-xl border px-3 py-2 text-sm" />
+                <input id="bkTime" type="time" required class="w-full rounded-xl border px-3 py-2 text-sm" />
+              </div>
+              <input id="bkName" placeholder="الاسم" required class="w-full rounded-xl border px-3 py-2 text-sm" />
+              <input id="bkEmail" type="email" placeholder="البريد" required class="w-full rounded-xl border px-3 py-2 text-sm" />
+              <input id="bkPhone" placeholder="الهاتف" class="w-full rounded-xl border px-3 py-2 text-sm" />
+              <textarea id="bkNotes" placeholder="ملاحظات" rows="3" class="w-full rounded-xl border px-3 py-2 text-sm"></textarea>
+              <input id="bkAmount" type="number" step="0.01" placeholder="قيمة العربون (اختياري)" class="w-full rounded-xl border px-3 py-2 text-sm" />
+              <button class="rounded-xl px-4 py-2 text-sm font-extrabold text-white" style="background:linear-gradient(90deg,#2563eb,#16a34a)">احجز</button>
+              <div id="bkMsg" class="text-xs text-red-600"></div>
+            </form>
+
+            <div id="bankBox" class="mt-4 hidden rounded-xl border p-4">
+              <div class="text-lg font-extrabold mb-2">بيانات التحويل البنكي</div>
+              <ul class="text-sm text-neutral-700 space-y-1">
+                <li>البنك: <b id="bankName">—</b></li>
+                <li>اسم الحساب: <b id="bankAcc">—</b></li>
+                <li>IBAN: <b id="bankIban">—</b></li>
+                <li>مرجع الدفع: <b id="payRef">—</b></li>
+              </ul>
+              <div id="bankNote" class="mt-2 text-xs text-neutral-500"></div>
+
+              <div class="mt-3">
+                <div class="text-sm font-bold mb-1">رفع إيصال التحويل (اختياري)</div>
+                <input id="receiptFile" type="file" accept="image/*,application/pdf" class="mb-2" />
+                <button id="btnSavePayment" class="rounded-xl border px-3 py-1 text-sm">تأكيد تسجيل التحويل</button>
+                <div id="payMsg" class="text-xs mt-1"></div>
+              </div>
             </div>
-          </a>
-          <nav className="hidden md:flex items-center gap-5 text-sm font-medium">
-            <a href="#portfolio" className="hover:text-black/70">معرض الأعمال</a>
-            <a href="#services" className="hover:text-black/70">الخدمات</a>
-            <a href="#process" className="hover:text-black/70">الخطوات</a>
-            <a href="#booking" className="hover:text-black/70">الحجز</a>
-            <a href="#faq" className="hover:text-black/70">الأسئلة</a>
-            {isAdmin && <a href="#admin" className="hover:text-black/70">لوحة التحكم</a>}
-          </nav>
-          <button onClick={onLoginClick} className="rounded-xl border border-neutral-300 px-4 py-2 text-sm font-semibold hover:bg-neutral-50">تسجيل الدخول</button>
-        </div>
-      </header>
-    );
+          </div>
 
-    const Hero = () => (
-      <div className="border-b border-neutral-200 bg-white">
-        <div className="mx-auto max-w-5xl px-4 py-14">
-          <h1 className="text-3xl md:text-5xl font-black text-black leading-tight">
-            مواقع احترافية مع حجز ومتابعة مدفوعات وتحويل بنكي
-          </h1>
-          <p className="mt-3 text-neutral-700 md:text-lg">
-            كل البيانات محفوظة في Supabase مع سياسات أمان RLS. لوحة مشرف لإدارة الحجوزات والمدفوعات وإعدادات البنك.
-          </p>
-          <div className="mt-6 flex gap-3">
-            <a href="#booking" className="rounded-xl px-5 py-3 text-sm font-extrabold text-white"
-               style={{ background: `linear-gradient(90deg, #2563eb, #16a34a)` }}>ابدأ الحجز</a>
-            <a href="#portfolio" className="rounded-xl border border-neutral-300 px-5 py-3 text-sm font-bold hover:bg-neutral-50">معرض الأعمال</a>
+          <div class="rounded-2xl border p-6">
+            <div class="text-lg font-extrabold mb-2">كيف يعمل الدفع؟</div>
+            <ol class="list-decimal ps-6 text-sm text-neutral-700 space-y-2">
+              <li>أحجز موعدك عبر الاستمارة.</li>
+              <li>سيظهر لك مرجع الدفع وبيانات الحساب البنكي.</li>
+              <li>قم بالتحويل مع كتابة المرجع في خانة الوصف.</li>
+              <li>يمكنك رفع إيصال التحويل وسيتم التأكيد بعد المراجعة.</li>
+            </ol>
           </div>
         </div>
       </div>
-    );
+    </section>
 
-    function NoticeIfNoConfig() {
-      const ok = !!CONFIG.supabase.url && !!CONFIG.supabase.anonKey && CONFIG.supabase.anonKey !== "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3dmpvbWZrYW1hcnNlcHRmeGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyMDQxODcsImV4cCI6MjA3MTc4MDE4N30.1YQm212pZMbbb3vdq5UTFUhJ-oygwswpZn-rTQCDPic";
-      if (ok) return null;
-      return (
-        <div className="notice mx-auto max-w-5xl my-4 rounded-xl px-4 py-3 text-sm">
-         
+    <section id="admin" class="py-16">
+      <div class="mx-auto max-w-7xl px-4">
+        <h2 class="text-3xl font-extrabold mb-4">لوحة التحكم</h2>
 
-    // ========= المصادقة =============
-    function useAuth() {
-      const supabase = useSupabase();
-      const [user, setUser] = useState(null);
+        <div id="adminGuard" class="rounded-2xl border p-6 text-sm text-neutral-600">يجب أن تكون مشرفًا لرؤية هذه الصفحة.</div>
 
-      useEffect(() => {
-        if (!supabase) return;
-        supabase.auth.getUser().then(({ data }) => setUser(data?.user || null));
-        const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => setUser(session?.user || null));
-        return () => sub?.subscription?.unsubscribe();
-      }, [supabase]);
+        
+        <div class="rounded-2xl border p-6">
+          <div class="text-lg font-extrabold mb-2">تفعيل وضع المشرف</div>
+          <p class="text-sm text-neutral-600 mb-3">أدخل رمز المشرف لتفعيل لوحة التحكم. إن لم تكن مسجلاً، سجّل الدخول أولًا.</p>
+          <div class="flex gap-2 max-w-md">
+            <input id="adminCodeInput" type="password" inputmode="numeric" placeholder="اكتب رمز المشرف هنا" class="w-full rounded-xl border px-3 py-2 text-sm" />
+            <button id="btnActivateAdmin" class="rounded-xl border px-3 py-2 text-sm">تفعيل</button>
+          </div>
+          <div id="adminActivateMsg" class="text-xs mt-2"></div>
+        </div>
 
-      return { supabase, user };
+
+        <div id="adminPanel" class="hidden space-y-8">
+          <div class="rounded-2xl border p-6">
+            <div class="text-lg font-extrabold mb-2">ملخص</div>
+            <div class="grid gap-4 md:grid-cols-3">
+              <div class="rounded-xl border p-4"><div class="text-xs text-neutral-500">الحجوزات</div><div id="sumBookings" class="text-2xl font-black">0</div></div>
+              <div class="rounded-xl border p-4"><div class="text-xs text-neutral-500">دفعات قيد المراجعة</div><div id="sumAwait" class="text-2xl font-black">0</div></div>
+              <div class="rounded-xl border p-4"><div class="text-xs text-neutral-500">مدفوع</div><div id="sumPaid" class="text-2xl font-black">0</div></div>
+            </div>
+          </div>
+
+          <div class="rounded-2xl border p-6 overflow-x-auto">
+            <div class="text-lg font-extrabold mb-2">الحجوزات</div>
+            <table class="w-full text-sm"><thead><tr class="text-left text-neutral-500">
+              <th class="p-2">التاريخ</th><th class="p-2">الوقت</th><th class="p-2">العميل</th><th class="p-2">الهاتف</th><th class="p-2">الحالة</th><th class="p-2">إجراءات</th>
+            </tr></thead><tbody id="tblBookings"></tbody></table>
+          </div>
+
+          <div class="rounded-2xl border p-6 overflow-x-auto">
+            <div class="text-lg font-extrabold mb-2">المدفوعات</div>
+            <table class="w-full text-sm"><thead><tr class="text-left text-neutral-500">
+              <th class="p-2">المبلغ</th><th class="p-2">العملة</th><th class="p-2">المرجع</th><th class="p-2">الإيصال</th><th class="p-2">الحالة</th><th class="p-2">إجراءات</th>
+            </tr></thead><tbody id="tblPayments"></tbody></table>
+          </div>
+
+          <div class="rounded-2xl border p-6">
+            <div class="text-lg font-extrabold mb-2">إعدادات البنك</div>
+            <div class="max-w-lg space-y-2">
+              <input id="setBankName" placeholder="اسم البنك" class="w-full rounded-xl border px-3 py-2 text-sm" />
+              <input id="setBankAcc" placeholder="اسم الحساب" class="w-full rounded-xl border px-3 py-2 text-sm" />
+              <input id="setBankIban" placeholder="IBAN" class="w-full rounded-xl border px-3 py-2 text-sm" />
+              <textarea id="setBankNote" placeholder="ملاحظة" rows="3" class="w-full rounded-xl border px-3 py-2 text-sm"></textarea>
+              <button id="btnSaveBank" class="rounded-xl px-4 py-2 text-sm font-extrabold text-white" style="background:#0a0a0a">حفظ</button>
+              <div id="bankSaveMsg" class="text-xs mt-1"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Auth Modal -->
+  <div id="authModal" class="fixed inset-0 z-[60] hidden bg-black/40 p-4">
+    <div class="w-full max-w-md mx-auto rounded-2xl border border-neutral-200 bg-white p-6 shadow-xl">
+      <div class="mb-4 flex items-center justify-between">
+        <div class="text-lg font-extrabold text-black">الدخول / حساب جديد</div>
+        <button id="btnCloseAuth" onclick="closeAuth()" class="rounded-xl border px-3 py-1 text-xs">إغلاق</button>
+      </div>
+      <div class="flex gap-2 text-xs mb-3">
+        <button id="modeLogin" class="rounded-xl border px-3 py-1">تسجيل الدخول</button>
+        <button id="modeSignup" class="rounded-xl border px-3 py-1 bg-neutral-50">حساب جديد</button>
+      </div>
+      <form id="authForm" class="space-y-3" autocomplete="off">
+        <input id="authEmail" type="email" placeholder="البريد الإلكتروني" required class="w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm" />
+        <input id="authPass" type="password" placeholder="كلمة المرور" required class="w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm" />
+        <button class="w-full rounded-xl px-4 py-2 text-sm font-extrabold text-white" style="background:#0a0a0a">نفّذ</button>
+        <div id="authMsg" class="text-xs"></div>
+      </form>
+    </div>
+  </div>
+
+  <footer class="bg-black text-white mt-12">
+    <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 py-10 md:flex-row">
+      <div class="text-xs opacity-80">© <span id="year"></span> mkam339. جميع الحقوق محفوظة.</div>
+      <div class="flex items-center gap-4 text-xs">
+        <a href="#portfolio" class="hover:underline">أعمالي</a>
+        <a href="#services" class="hover:underline">الخدمات</a>
+        <a href="#process" class="hover:underline">الخطوات</a>
+        <a href="#booking" class="hover:underline">الحجز</a>
+        <a href="#faq" class="hover:underline">الأسئلة</a>
+        <a href="#admin" class="hover:underline">لوحة التحكم</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    function openAuth(){ try{ document.getElementById('authModal').classList.remove('hidden'); }catch(e){} }
+    function closeAuth(){ try{ document.getElementById('authModal').classList.add('hidden'); }catch(e){} }
+
+    // ===== Supabase Config (Frontend) =====
+    const SUPABASE_URL  = "https://lwvjomfkamarseptfxey.supabase.co";
+    const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3dmpvbWZrYW1hcnNlcHRmeGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyMDQxODcsImV4cCI6MjA3MTc4MDE4N30.1YQm212pZMbbb3vdq5UTFUhJ-oygwswpZn-rTQCDPic";
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
+
+      auth:{ persistSession:false, autoRefreshToken:true, storage:{ getItem:async()=>null,setItem:async()=>{},removeItem:async()=>{} } }
+    });
+
+    // ===== State =====
+    let authMode = 'signup';
+    let currentUser = null;
+    let profileRole = null;
+    let currentBookingId = null;
+    let currentReference = null;
+    let receiptUrl = '';
+
+    // ===== Utils =====
+    const $ = (id) => document.getElementById(id);
+    const show = (el) => el.classList.remove('hidden');
+    const hide = (el) => el.classList.add('hidden');
+    const setText = (id, v) => ($(id).textContent = v);
+
+    function genRef() {
+      return `MK-${Math.random().toString(36).slice(2,8).toUpperCase()}-${Date.now().toString().slice(-4)}`;
     }
 
-    function AuthModal({ open, onClose, onAuthChange }) {
-      const { supabase } = useAuth(); // للحصول على client جاهز
-      const [mode, setMode] = useState('signup');
-      const [email, setEmail] = useState('');
-      const [password, setPassword] = useState('');
-      const [adminCode, setAdminCode] = useState('');
-      const [loading, setLoading] = useState(false);
-      const [error, setError] = useState('');
+    // ===== Helpers =====
 
-      async function handleAuth(e) {
+    async function afterAuthSuccess() {
+      const { data } = await supabase.auth.getUser();
+      currentUser = data?.user || null;
+      if (!currentUser) return;
+      // ensure profile exists (init may have failed earlier)
+      try { await supabase.rpc('init_profile'); } catch (e) {}
+      const { data: prof } = await supabase.from('profiles').select('role').eq('id', currentUser.id).maybeSingle();
+      profileRole = prof?.role || 'client';
+      // Show admin link/panel if admin
+      if (profileRole === 'admin') {
+        document.getElementById('adminLink').classList.remove('hidden');
+        document.getElementById('adminGuard').classList.add('hidden');
+        document.getElementById('adminPanel').classList.remove('hidden');
+        await refreshAdminData();
+      }
+      // Close auth modal and clear message
+      document.getElementById('authMsg').textContent = 'تم تسجيل الدخول ✅';
+      setTimeout(()=>{ document.getElementById('btnCloseAuth').click(); }, 300);
+    }
+
+
+    // ===== Boot =====
+    document.addEventListener('DOMContentLoaded', async () => {
+      $('year').textContent = new Date().getFullYear();
+      // Auth modal toggles
+      try { $('btnOpenAuth').onclick = () => openAuth(); } catch(e){}
+      try { $('btnCloseAuth').onclick = () => closeAuth(); } catch(e){}
+      $('modeLogin').onclick = () => { authMode='login'; $('modeLogin').classList.add('bg-neutral-50'); $('modeSignup').classList.remove('bg-neutral-50'); };
+      $('modeSignup').onclick = () => { authMode='signup'; $('modeSignup').classList.add('bg-neutral-50'); $('modeLogin').classList.remove('bg-neutral-50'); };
+
+      // Current user
+      const { data } = await supabase.auth.getUser();
+      currentUser = data?.user || null;
+      if (currentUser) {
+        const { data: prof } = await supabase.from('profiles').select('role').eq('id', currentUser.id).maybeSingle();
+        profileRole = prof?.role || 'client';
+        if (profileRole === 'admin') { show($('adminLink')); hide($('adminGuard')); show($('adminPanel')); await refreshAdminData(); }
+      }
+
+      // Auth form
+      $('authForm').onsubmit = async (e) => {
         e.preventDefault();
-        setError('');
-        if (!supabase) { setError('فعّل Supabase في CONFIG'); return; }
-        setLoading(true);
+        $('authMsg').className = 'text-xs';
+        $('authMsg').textContent = '...';
+
+        const email = $('authEmail').value.trim();
+        const password = $('authPass').value.trim();
+        const code = ''; // admin code moved to Admin section
+
         try {
-          if (mode === 'login') {
-            const { error } = await supabase.auth.signInWithPassword({ email, password });
-            if (error) throw error;
+  if (authMode === 'login') {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    // admin code moved to Admin section
+  } else {
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error) throw error;
+    if (!data?.user) { document.getElementById('authMsg').textContent = 'تم إرسال تأكيد للبريد. افتح الرابط ثم سجّل الدخول.'; return; }
+    try { await supabase.rpc('init_profile'); } catch {}
+    // admin code moved to Admin section
+  }
+  await afterAuthSuccess();
+} catch {} }
           } else {
             const { data, error } = await supabase.auth.signUp({ email, password });
             if (error) throw error;
-            if (data?.user) {
-              try { await supabase.rpc('init_profile'); } catch {}
-              if (adminCode.trim()) { try { await supabase.rpc('elevate_to_admin', { p_code: adminCode.trim() }); } catch {} }
-            }
+            if (!data?.user) { $('authMsg').textContent = 'تم إرسال تأكيد للبريد. افتح الرابط ثم سجّل الدخول.'; return; }
+            try { await supabase.rpc('init_profile'); } catch {}
+            // admin code moved to Admin section
           }
-          onAuthChange && onAuthChange(true);
-          onClose();
+          // location.reload(); // disabled due to persistSession=false
         } catch (err) {
-          setError(err?.message || 'حدث خطأ');
-        } finally {
-          setLoading(false);
+          $('authMsg').classList.add('text-red-600');
+          $('authMsg').textContent = err?.message || 'خطأ';
         }
-      }
+      };
 
-      async function loginWithGoogle() {
-        const urlOk = !!CONFIG.supabase.url;
-        const keyOk = !!CONFIG.supabase.anonKey && CONFIG.supabase.anonKey !== "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3dmpvbWZrYW1hcnNlcHRmeGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyMDQxODcsImV4cCI6MjA3MTc4MDE4N30.1YQm212pZMbbb3vdq5UTFUhJ-oygwswpZn-rTQCDPic";
-        if (!urlOk || !keyOk) { setError('أكمل CONFIG أولاً'); return; }
-        const supabase = window.supabase.createClient(CONFIG.supabase.url, CONFIG.supabase.anonKey, {
-          auth: { persistSession:false, autoRefreshToken:true, storage: { getItem:async()=>null, setItem:async()=>{}, removeItem:async()=>{} } }
-        });
-        await supabase.auth.signInWithOAuth({
-          provider: 'google',
-          options: { redirectTo: window.location.origin }
-        });
-      }
 
-      if (!open) return null;
-      return (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4" onClick={onClose}>
-          <div className="w-full max-w-md rounded-2xl border border-neutral-200 bg-white p-6 shadow-xl" onClick={(e)=>e.stopPropagation()}>
-            <div className="mb-4 flex items-center justify-between">
-              <div className="text-lg font-extrabold text-black">تسجيل الدخول / إنشاء حساب</div>
-              <button onClick={onClose} className="rounded-xl border px-3 py-1 text-xs">إغلاق</button>
-            </div>
+      // Admin activation (outside login)
+      try {
+        document.getElementById('btnActivateAdmin').onclick = async () => {
+          const box = document.getElementById('adminActivateMsg');
+          const code = (document.getElementById('adminCodeInput').value || '').trim();
+          box.className = 'text-xs'; box.textContent = '...';
+          if (!currentUser) { box.className='text-xs text-red-600'; box.textContent='سجّل الدخول أولاً.'; return; }
+          if (!code) { box.className='text-xs text-red-600'; box.textContent='اكتب رمز المشرف.'; return; }
+          try {
+            const { data, error } = await supabase.rpc('elevate_to_admin', { p_code: code });
+            if (error) throw error;
+            // Re-fetch role
+            const { data: prof } = await supabase.from('profiles').select('role').eq('id', currentUser.id).maybeSingle();
+            profileRole = prof?.role || 'client';
+            if (profileRole === 'admin') {
+              document.getElementById('adminLink').classList.remove('hidden');
+              document.getElementById('adminGuard').classList.add('hidden');
+              document.getElementById('adminPanel').classList.remove('hidden');
+              await refreshAdminData();
+              box.className='text-xs text-green-700'; box.textContent='تم تفعيل وضع المشرف ✅';
+            } else {
+              box.className='text-xs text-red-600'; box.textContent='رمز غير صحيح.';
+            }
+          } catch (e) {
+            box.className='text-xs text-red-600'; box.textContent = e?.message || 'تعذر التفعيل';
+          }
+        };
+      } catch(e) {}
 
-            <form onSubmit={handleAuth} className="space-y-3" autoComplete="off">
-              <div className="flex gap-2 text-xs">
-                <button type="button" className={"rounded-xl border px-3 py-1 " + (mode==='login'?'bg-neutral-50':'')} onClick={()=>setMode('login')}>تسجيل الدخول</button>
-                <button type="button" className={"rounded-xl border px-3 py-1 " + (mode==='signup'?'bg-neutral-50':'')} onClick={()=>setMode('signup')}>حساب جديد</button>
-              </div>
 
-              <input type="email" placeholder="البريد الإلكتروني" className="w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm" value={email} onChange={(e)=>setEmail(e.target.value)} required />
-              <input type="password" placeholder="كلمة المرور" className="w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm" value={password} onChange={(e)=>setPassword(e.target.value)} required />
+      // Booking form
+      $('formBooking').onsubmit = async (e) => {
+        e.preventDefault();
+        if (!currentUser) { $('bkMsg').textContent = 'سجّل الدخول أولاً.'; return; }
+        $('bkMsg').textContent = '';
+        try {
+          const payload = {
+            user_id: currentUser.id,
+            name: $('bkName').value,
+            email: $('bkEmail').value,
+            phone: $('bkPhone').value,
+            date: $('bkDate').value || null,
+            time: $('bkTime').value || null,
+            notes: $('bkNotes').value,
+            status: 'pending'
+          };
+          const { data, error } = await supabase.from('bookings').insert(payload).select('id').single();
+          if (error) throw error;
+          currentBookingId = data.id;
+          currentReference = genRef();
 
-              {/* خانة رمز المشرف ظاهرة دائمًا */}
-              <input type="password" inputMode="numeric" autocomplete="new-password" placeholder="رمز المشرف (اختياري)"
-                     className="w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm" value={adminCode} onChange={(e)=>setAdminCode(e.target.value)} />
-
-              {error && <div className="text-xs text-red-600">{error}</div>}
-              <button type="submit" disabled={loading} className="w-full rounded-xl px-4 py-2 text-sm font-extrabold text-white disabled:opacity-60" style={{ background: '#0a0a0a' }}>
-                {loading ? 'جارٍ المعالجة…' : (mode==='login' ? 'تسجيل الدخول' : 'إنشاء الحساب')}
-              </button>
-
-              <div className="flex items-center gap-2 py-1">
-                <div className="h-px w-full bg-neutral-200"></div><div className="text-[11px] text-neutral-500">أو</div><div className="h-px w-full bg-neutral-200"></div>
-              </div>
-            </form>
-          </div>
-        </div>
-      );
-    }
-
-    // ======= لوحة الإدارة مختصرة (عرض فقط) =======
-    function AdminDashboard({ supabase, profile }) {
-      const isAdmin = profile?.role === 'admin';
-      const [bank, setBank] = useState({ bankName: '', accountName: '', iban: '', note: '' });
-      const [msg, setMsg] = useState('');
-
-      useEffect(() => {
-        (async () => {
-          if (!supabase || !isAdmin) return;
+          // Load bank settings
           const { data: s } = await supabase.from('settings').select('value').eq('key','bank').maybeSingle();
-          if (s && s.value) setBank(prev => ({ ...prev, ...s.value }));
-        })();
-      }, [supabase, isAdmin]);
+          const v = s?.value || {};
+          setText('bankName', v.bankName || '—');
+          setText('bankAcc',  v.accountName || '—');
+          setText('bankIban', v.iban || '—');
+          $('bankNote').textContent = v.note || '';
 
-      async function saveBank() {
-        if (!supabase) return;
-        const { error } = await supabase.from('settings').upsert({ key:'bank', value: bank, updated_at: new Date().toISOString() });
-        setMsg(error ? 'تعذر الحفظ' : 'تم الحفظ ويظهر للجميع فورًا');
-      }
+          setText('payRef', currentReference);
+          show($('bankBox'));
+        } catch (err) {
+          $('bkMsg').textContent = err?.message || 'تعذر حفظ الحجز';
+        }
+      };
 
-      if (!isAdmin) return <div className="rounded-xl border p-4 text-sm">تحتاج صلاحية مشرف.</div>;
+      // Upload receipt and save payment
+      $('btnSavePayment').onclick = async () => {
+        try {
+          const f = $('receiptFile').files[0];
+          if (f && currentUser) {
+            const path = `${currentUser.id}/${Date.now()}_${f.name}`;
+            const { error: upErr } = await supabase.storage.from('receipts').upload(path, f);
+            if (upErr) throw upErr;
+            const { data: urlData } = await supabase.storage.from('receipts').getPublicUrl(path);
+            receiptUrl = urlData?.publicUrl || '';
+          }
+          const amountVal = $('bkAmount').value ? Number($('bkAmount').value) : null;
+          const { error } = await supabase.from('payments').insert({
+            user_id: currentUser.id, booking_id: currentBookingId, method: 'bank',
+            amount: amountVal, currency: 'SAR', status: 'awaiting_verification',
+            reference: currentReference, receipt_url: receiptUrl || null
+          });
+          $('payMsg').className = 'text-xs ' + (error ? 'text-red-600' : 'text-green-700');
+          $('payMsg').textContent = error ? 'تعذر حفظ الدفع' : 'تم تسجيل الدفع، سيتم التأكيد بعد المراجعة ✅';
+        } catch (e) {
+          $('payMsg').className = 'text-xs text-red-600';
+          $('payMsg').textContent = e?.message || 'خطأ أثناء حفظ الدفع';
+        }
+      };
+    });
 
-      return (
-        <div className="space-y-3">
-          <input placeholder="اسم البنك" className="w-full rounded-xl border px-3 py-2 text-sm" value={bank.bankName} onChange={e=>setBank({...bank, bankName:e.target.value})} />
-          <input placeholder="اسم الحساب" className="w-full rounded-xl border px-3 py-2 text-sm" value={bank.accountName} onChange={e=>setBank({...bank, accountName:e.target.value})} />
-          <input placeholder="IBAN" className="w-full rounded-xl border px-3 py-2 text-sm" value={bank.iban} onChange={e=>setBank({...bank, iban:e.target.value})} />
-          <textarea placeholder="ملاحظة" className="w-full rounded-xl border px-3 py-2 text-sm" rows="3" value={bank.note} onChange={e=>setBank({...bank, note:e.target.value})} />
-          <button onClick={saveBank} className="rounded-xl px-4 py-2 text-sm font-extrabold text-white" style={{ background:'#0a0a0a' }}>حفظ</button>
-          {msg && <div className="text-xs text-neutral-600">{msg}</div>}
-        </div>
-      );
+    async function refreshAdminData() {
+      const { data: b } = await supabase.from('bookings').select('*').order('created_at', { ascending:false });
+      const { data: p } = await supabase.from('payments').select('*').order('created_at', { ascending:false });
+      const { data: s } = await supabase.from('settings').select('value').eq('key','bank').maybeSingle();
+
+      // Summary
+      $('sumBookings').textContent = b?.length || 0;
+      $('sumAwait').textContent = (p || []).filter(x => x.status === 'awaiting_verification').length;
+      $('sumPaid').textContent = (p || []).filter(x => x.status === 'paid').length;
+
+      // Bookings table
+      const tb = $('tblBookings'); tb.innerHTML = '';
+      (b||[]).forEach(row => {
+        const tr = document.createElement('tr');
+        tr.className='border-t';
+        tr.innerHTML = `
+          <td class="p-2">${row.date || '—'}</td>
+          <td class="p-2">${row.time || '—'}</td>
+          <td class="p-2">${row.name}</td>
+          <td class="p-2">${row.phone || '—'}</td>
+          <td class="p-2">${row.status}</td>
+          <td class="p-2 flex gap-2">
+            <button data-id="${row.id}" data-st="confirmed" class="actBooking rounded border px-2 py-1">تأكيد</button>
+            <button data-id="${row.id}" data-st="canceled"  class="actBooking rounded border px-2 py-1">إلغاء</button>
+            <button data-id="${row.id}" data-st="paid"      class="actBooking rounded border px-2 py-1">تم الدفع</button>
+          </td>`;
+        tb.appendChild(tr);
+      });
+      tb.querySelectorAll('.actBooking').forEach(btn => {
+        btn.onclick = async () => {
+          await supabase.from('bookings').update({ status: btn.dataset.st }).eq('id', btn.dataset.id);
+          refreshAdminData();
+        };
+      });
+
+      // Payments table
+      const tp = $('tblPayments'); tp.innerHTML='';
+      (p||[]).forEach(row => {
+        const tr = document.createElement('tr');
+        tr.className='border-t';
+        tr.innerHTML = `
+          <td class="p-2">${row.amount || '—'}</td>
+          <td class="p-2">${row.currency}</td>
+          <td class="p-2">${row.reference || '—'}</td>
+          <td class="p-2">${row.receipt_url ? `<a class="underline" href="${row.receipt_url}" target="_blank" rel="noreferrer">عرض</a>` : '—'}</td>
+          <td class="p-2">${row.status}</td>
+          <td class="p-2 flex gap-2">
+            <button data-id="${row.id}" data-st="paid"     class="actPay rounded border px-2 py-1">وسم كمدفوع</button>
+            <button data-id="${row.id}" data-st="rejected" class="actPay rounded border px-2 py-1">رفض</button>
+          </td>`;
+        tp.appendChild(tr);
+      });
+      tp.querySelectorAll('.actPay').forEach(btn => {
+        btn.onclick = async () => {
+          await supabase.from('payments').update({ status: btn.dataset.st }).eq('id', btn.dataset.id);
+          refreshAdminData();
+        };
+      });
+
+      // Bank settings
+      const v = s?.value || {};
+      $('setBankName').value = v.bankName || '';
+      $('setBankAcc').value  = v.accountName || '';
+      $('setBankIban').value = v.iban || '';
+      $('setBankNote').value = v.note || '';
+
+      $('btnSaveBank').onclick = async () => {
+        const payload = {
+          key:'bank',
+          value: { bankName: $('setBankName').value, accountName: $('setBankAcc').value, iban: $('setBankIban').value, note: $('setBankNote').value },
+          updated_at: new Date().toISOString()
+        };
+        const { error } = await supabase.from('settings').upsert(payload);
+        $('bankSaveMsg').className = 'text-xs ' + (error ? 'text-red-600':'text-green-700');
+        $('bankSaveMsg').textContent = error ? 'تعذر الحفظ' : 'تم الحفظ ويظهر للجميع فورًا';
+      };
     }
-
-    function App() {
-      const supabase = useSupabase();
-      const [authOpen, setAuthOpen] = useState(false);
-      const [user, setUser] = useState(null);
-      const [profile, setProfile] = useState(null);
-
-      useEffect(() => {
-        (async () => {
-          if (!supabase) return;
-          const { data } = await supabase.auth.getUser();
-          setUser(data?.user || null);
-        })();
-      }, [supabase]);
-
-      useEffect(() => {
-        (async () => {
-          if (!supabase || !user) { setProfile(null); return; }
-          const { data } = await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle();
-          setProfile(data || { role: 'client' });
-        })();
-      }, [supabase, user]);
-
-      const isAdmin = profile?.role === 'admin';
-
-      return (
-        <div className="min-h-screen">
-          <NavBar onLoginClick={() => setAuthOpen(true)} isAdmin={isAdmin} />
-          <Hero />
-          <NoticeIfNoConfig />
-
-          <Section id="services" title="الخدمات" subtitle="حلول مواقع احترافية بخيارات دفع وتحكم داخلي">
-            <ul className="list-disc ps-6 text-sm text-neutral-700">
-              <li>صفحات هبوط ومواقع شركات</li>
-              <li>حجوزات داخلية ودفع بتحويل بنكي</li>
-              <li>لوحة مشرف لإدارة الإعدادات</li>
-            </ul>
-          </Section>
-
-          <Section id="portfolio" title="معرض الأعمال" subtitle="أعمال مختارة يمكن استبدالها بروابط حقيقية">
-            <div className="grid gap-4 md:grid-cols-3">
-              {['مشروع 1','مشروع 2','مشروع 3'].map((t,i)=>(
-                <a key={i} href="#" className="rounded-xl border p-4 hover:bg-neutral-50">
-                  <div className="font-extrabold text-black mb-1">{t}</div>
-                  <div className="text-sm text-neutral-600">وصف مختصر للمشروع…</div>
-                </a>
-              ))}
-            </div>
-          </Section>
-
-          <Section id="booking" title="الحجز والدفع" subtitle="سيتم توليد مرجع دفع ويظهر لك IBAN بعد التسجيل">
-            <div className="rounded-xl border p-4 text-sm text-neutral-600">
-              لتجربة الحجز كاملة نحتاج إعداد الجداول وسياسات RLS (شغّل ملف SQL الذي وفّرته لك).
-            </div>
-          </Section>
-
-          <Section id="admin" title="لوحة التحكم" subtitle="تعديل بيانات البنك (للمشرف فقط)">
-            <AdminDashboard supabase={supabase} profile={profile} />
-          </Section>
-
-          <footer className="bg-black text-white mt-10">
-            <div className="mx-auto max-w-5xl px-4 py-8 text-xs opacity-80">© {new Date().getFullYear()} mkam339 — جميع الحقوق محفوظة.</div>
-          </footer>
-
-          <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} onAuthChange={()=>{ window.location.reload(); }} />
-        </div>
-      );
-    }
-
-    const root = ReactDOM.createRoot(document.getElementById('app'));
-    root.render(<App />);
   </script>
 </body>
 </html>
